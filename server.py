@@ -2,7 +2,6 @@ from flask import Flask, request, make_response
 from PIL import Image
 import io
 from tran_goods import TransGoods
-import flask
 
 app = Flask(__name__)
 

@@ -10,5 +10,4 @@ data = output.getvalue()
 
 response = requests.post("http://127.0.0.1:5000/", files={"post_data": data})
 
-img_pil = Image.open(io.BytesIO(response.content))
-img_pil.save("res.png")
+Image.open(io.BytesIO(response.content)).save("res.png")
