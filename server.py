@@ -15,8 +15,8 @@ def do_get():
 @app.route("/", methods=["POST"])
 def do_post():
     if request.method == "POST":
-        image_bytes = flask.request.data
-        image = Image.open(io.BytesIO(image_bytes))
+        image_bytes = request.files["post_data"] # flask.request.data
+        image = Image.open(io.BytesIO(image_bytes.read()))
 
         # 処理
         image = tg.segmentation(image)
