@@ -6,31 +6,47 @@ using WebSocketSharp.Net;
 using System.IO;
 using System;
 using System.Text;
+using System.Threading;
 
 public class Web_socket : MonoBehaviour
 {
 
     WebSocket ws;
     System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-            
+    byte[] receive;
+    private SynchronizationContext context;
+    Texture2D texture2D;
+
+    private bool isReceivedMessage;
+
+    public static Texture2D GetTexture2DFromPngFile(string path)
+    {
+        byte[] img = File.ReadAllBytes(path);
+
+        int width = 1024;
+        int height = 512;
+
+        Texture2D texture = new Texture2D(width, height);
+        texture.LoadImage(img);
+        TextureScale.Point(texture, width / 2, height / 2);
+        return texture;
+    }
 
     void Start()
     {
-        ws = new WebSocket("ws://127.0.0.1:5000/");
-        
+        texture2D = new Texture2D(256, 128);
+        isReceivedMessage = false;
 
+        ws = new WebSocket("ws://127.0.0.1:5000/");
 
         ws.OnOpen += (sender, e) => {
             Debug.Log("WebSocket Open");
         };
+
         ws.OnMessage += (sender, e) => {
             Debug.Log(e.Data);
-            byte[] receive = Convert.FromBase64String(e.Data);
-
-            File.WriteAllBytes("./Assets/soc.png", receive);
-            print("aaaa");
-            sw.Stop();
-            Debug.Log($"{sw.ElapsedMilliseconds} sec");
+            receive = Convert.FromBase64String(e.Data);
+            isReceivedMessage = true;
         };
 
         ws.OnError += (sender, e) => {
@@ -47,18 +63,25 @@ public class Web_socket : MonoBehaviour
 
     void Update()
     {
-
-        if (Input.GetKeyUp(KeyCode.Space)) {
+        if (Input.GetKeyUp(KeyCode.Space))
+        {
             string send_message = "SpaceKey_pressed";
-            byte[] img = File.ReadAllBytes(Application.dataPath + "./3.jpg");
+            byte[] img = GetTexture2DFromPngFile(Application.dataPath + "./aaa.png").EncodeToJPG();
             string base64string = Convert.ToBase64String(img);
 
             Debug.Log(base64string.Length);
 
             sw.Start();
             Debug.Log("WebSocket Send Message Data: " + send_message);
-            ws.Send(base64string);
 
+            if (isReceivedMessage)
+            {
+                isReceivedMessage = false;
+                texture2D.LoadImage(receive);
+                receive = texture2D.EncodeToPNG();
+                File.WriteAllBytes("./Assets/rec2.png", receive);
+            }
+            ws.Send(base64string);
         }
 
     }
