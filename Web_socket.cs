@@ -1,23 +1,18 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using WebSocketSharp;
-using WebSocketSharp.Net;
 using System.IO;
 using System;
-using System.Text;
 using System.Threading;
+using System.Collections.Generic;
 
 public class Web_socket : MonoBehaviour
 {
-
     WebSocket ws;
-    System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-    byte[] receive;
     private SynchronizationContext context;
-    Texture2D texture2D;
+    private Texture2D texture2D;
 
     private bool isReceivedMessage;
+    byte[] receive;
 
     public static Texture2D GetTexture2DFromPngFile(string path)
     {
@@ -44,8 +39,9 @@ public class Web_socket : MonoBehaviour
         };
 
         ws.OnMessage += (sender, e) => {
-            Debug.Log(e.Data);
-            receive = Convert.FromBase64String(e.Data);
+            Debug.Log(BitConverter.ToString(e.RawData));
+            receive = e.RawData;
+            Debug.Log("re: " + BitConverter.ToString(receive));
             isReceivedMessage = true;
         };
 
@@ -56,6 +52,8 @@ public class Web_socket : MonoBehaviour
         ws.OnClose += (sender, e) => {
 
             Debug.Log("WebSocket Close" + e);
+            print(ws);
+
         };
         ws.Connect();
 
@@ -65,26 +63,27 @@ public class Web_socket : MonoBehaviour
     {
         if (Input.GetKeyUp(KeyCode.Space))
         {
-            string send_message = "SpaceKey_pressed";
+
             byte[] img = GetTexture2DFromPngFile(Application.dataPath + "./aaa.png").EncodeToJPG();
+            Debug.Log(img.Length);
+            Debug.Log(BitConverter.ToString(img));
+            
             string base64string = Convert.ToBase64String(img);
+            print(base64string.Length);
 
-            Debug.Log(base64string.Length);
-
-            sw.Start();
-            Debug.Log("WebSocket Send Message Data: " + send_message);
-
+            print(isReceivedMessage);
             if (isReceivedMessage)
             {
                 isReceivedMessage = false;
                 texture2D.LoadImage(receive);
                 receive = texture2D.EncodeToPNG();
-                File.WriteAllBytes("./Assets/rec2.png", receive);
+                File.WriteAllBytes("./Assets/zzzz.png", receive);
             }
-            ws.Send(base64string);
+            ws.Send(img);
         }
 
     }
+
 
     void OnDestroy()
     {
