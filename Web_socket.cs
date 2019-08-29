@@ -2,8 +2,10 @@
 using WebSocketSharp;
 using System.IO;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Collections.Generic;
+using System.Text;
 
 public class Web_socket : MonoBehaviour
 {
@@ -63,13 +65,13 @@ public class Web_socket : MonoBehaviour
     {
         if (Input.GetKeyUp(KeyCode.Space))
         {
-
+            byte[] img_header = Encoding.ASCII.GetBytes("/image");
             byte[] img = GetTexture2DFromPngFile(Application.dataPath + "./aaa.png").EncodeToJPG();
+            byte[] message = img_header.Concat(img).ToArray();
+
+            byte[] label_header = Encoding.ASCII.GetBytes("/label");
             Debug.Log(img.Length);
             Debug.Log(BitConverter.ToString(img));
-            
-            string base64string = Convert.ToBase64String(img);
-            print(base64string.Length);
 
             print(isReceivedMessage);
             if (isReceivedMessage)
@@ -79,7 +81,8 @@ public class Web_socket : MonoBehaviour
                 receive = texture2D.EncodeToPNG();
                 File.WriteAllBytes("./Assets/zzzz.png", receive);
             }
-            ws.Send(img);
+            ws.Send(message);
+            ws.Send(label_header);
         }
 
     }
